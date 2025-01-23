@@ -27,9 +27,7 @@ This is a backend application built using NestJS that implements a **wallet syst
 ## **Setup Instructions**
 
 ### **1. Clone the Repository**
-Clone this repository to your local machine:
-git clone https://github.com/your-username/wallet-escrow-app.git
-cd wallet-escrow-app
+Clone this repository to your local machine
 
 ## **2. Install Dependencies**
 npm install

@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ClientSession, startSession } from 'mongoose';
 import { Escrow } from './schemas/escrow.schema';
 import { User } from '../auth/schemas/user.schema';
 
@@ -12,63 +12,92 @@ export class EscrowService {
   ) {}
 
   async fundEscrow(senderId: string, recipientId: string, amount: number) {
-    const sender = await this.userModel.findById(senderId);
-    if (!sender) {
-        throw new Error('User not found');
+    const session: ClientSession = await startSession();
+    session.startTransaction();
+
+    try {
+      
+      const sender = await this.userModel.findById(senderId).session(session);
+      if (!sender) throw new NotFoundException('Sender not found');
+      if (sender.walletBalance < amount) throw new BadRequestException('Insufficient balance');
+
+      
+      sender.walletBalance -= amount;
+      await sender.save({ session });
+
+      
+      const escrow = new this.escrowModel({ senderId, recipientId, amount, status: 'funded' });
+      await escrow.save({ session });
+
+      await session.commitTransaction();
+      return { message: 'Escrow funded successfully', escrow };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
-    if (sender.walletBalance < amount) throw new Error('Insufficient balance');
-
-    sender.walletBalance -= amount;
-    await sender.save();
-
-    const escrow = new this.escrowModel({
-      senderId,
-      recipientId,
-      amount,
-    });
-    return escrow.save();
   }
 
   async releaseEscrow(escrowId: string) {
-    const escrow = await this.escrowModel.findById(escrowId);
-    if (!escrow || escrow.status !== 'funded') throw new Error('Invalid escrow');
+    const session: ClientSession = await startSession();
+    session.startTransaction();
 
-    const recipient = await this.userModel.findById(escrow.recipientId);
-    if (!recipient) {
-        throw new Error('User not found');
+    try {
+      const escrow = await this.escrowModel.findById(escrowId).session(session);
+      if (!escrow) throw new NotFoundException('Escrow not found');
+      if (escrow.status !== 'funded') throw new BadRequestException('Invalid escrow state');
+
+  
+      const recipient = await this.userModel.findById(escrow.recipientId).session(session);
+      if (!recipient) throw new NotFoundException('Recipient not found');
+
+      
+      recipient.walletBalance += escrow.amount;
+      await recipient.save({ session });
+
+     
+      escrow.status = 'released';
+      await escrow.save({ session });
+
+      await session.commitTransaction();
+      return { message: 'Escrow released successfully', escrow };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
-    recipient.walletBalance += escrow.amount;
-    await recipient.save();
-
-    escrow.status = 'released';
-    return escrow.save();
   }
 
   async refundEscrow(escrowId: string) {
-    const escrow = await this.escrowModel.findById(escrowId);
-    if (!escrow) {
-      throw new Error('Escrow not found');
-    }
-    if (escrow.status === 'released') {
-      throw new Error('Escrow has already been released. No refund possible.');
-    }
-    if (escrow.status === 'refunded') {
-      throw new Error('Escrow has already been refunded.');
-    }
-    if (escrow.status !== 'funded') {
-      throw new Error('Escrow is not in a refundable state.');
-    }
-    const sender = await this.userModel.findById(escrow.senderId);
-    if (!sender) {
-      throw new Error('Sender not found');
-    } 
-    sender.walletBalance += escrow.amount; 
-    await sender.save();
-    escrow.status = 'refunded';
-    await escrow.save();
-    return { message: 'Escrow refunded successfully', escrow };
-  }
-  
-}
+    const session: ClientSession = await startSession();
+    session.startTransaction();
 
-  
+    try {
+      
+      const escrow = await this.escrowModel.findById(escrowId).session(session);
+      if (!escrow) throw new NotFoundException('Escrow not found');
+      if (escrow.status !== 'funded') throw new BadRequestException('Escrow is not refundable');
+
+      
+      const sender = await this.userModel.findById(escrow.senderId).session(session);
+      if (!sender) throw new NotFoundException('Sender not found');
+
+      
+      sender.walletBalance += escrow.amount;
+      await sender.save({ session });
+
+      escrow.status = 'refunded';
+      await escrow.save({ session });
+
+      await session.commitTransaction();
+      return { message: 'Escrow refunded successfully', escrow };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+}

@@ -1,23 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config'; // Import ConfigService
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
+
+export interface AuthenticatedRequest extends Request {
+  user: {
+    _id: string;
+    email: string;
+  };
+}
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
-    const jwtSecret = configService.get<string>('JWT_SECRET');
-    if (!jwtSecret) {
-      throw new Error('JWT_SECRET is not defined in the environment variables');
-    }
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), 
-      ignoreExpiration: false,
-      secretOrKey: jwtSecret,
-    });
-  }
+export class JwtAuthGuard implements CanActivate {
+  constructor(private jwtService: JwtService, private reflector: Reflector) {}
 
-  async validate(payload: any) {
-    return { userId: payload.userId, email: payload.email };
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<Request>();
+    const authHeader = request.headers.authorization;
+  
+    if (!authHeader) {
+      throw new UnauthorizedException('No authorization header');
+    }
+  
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException('Invalid token');
+    }
+  
+    try {
+      const decoded = this.jwtService.verify(token);
+      request.user = { _id: decoded.userId, email: decoded.email }; // Use userId instead of sub
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
-}
+}  

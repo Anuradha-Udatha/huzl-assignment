@@ -7,29 +7,29 @@ import { User } from '../auth/schemas/user.schema';
 export class WalletService {
   constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
 
-  async addFunds(userId: string, amount: number) {
+  async addFunds(userId: string, amount: number): Promise<User> { // Return type User
     const user = await this.userModel.findById(userId);
     if (!user) {
-        throw new Error('User not found');
+      throw new Error('User not found');
     }
     user.walletBalance += amount;
     return user.save();
   }
 
-  async withdrawFunds(userId: string, amount: number) {
+  async withdrawFunds(userId: string, amount: number): Promise<User> { // Return type User
     const user = await this.userModel.findById(userId);
     if (!user) {
-        throw new Error('User not found');
+      throw new Error('User not found');
     }
     if (user.walletBalance < amount) throw new Error('Insufficient balance');
     user.walletBalance -= amount;
     return user.save();
   }
 
-  async getBalance(userId: string) {
+  async getBalance(userId: string): Promise<number> { // Return type number
     const user = await this.userModel.findById(userId);
     if (!user) {
-        throw new Error('User not found');
+      throw new Error('User not found');
     }
     return user.walletBalance;
   }

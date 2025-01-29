@@ -1,6 +1,7 @@
-import { Controller, Post, Body,UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { EscrowService } from './escrow.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/auth/jwt.strategy';
 
 @UseGuards(JwtAuthGuard)
 @Controller('escrow')
@@ -9,10 +10,14 @@ export class EscrowController {
 
   @Post('fund')
   async fundEscrow(
-    @Body('senderId') senderId: string,
+    @Req() req: AuthenticatedRequest, 
     @Body('recipientId') recipientId: string,
     @Body('amount') amount: number,
   ) {
+    const senderId = req.user?._id.toString(); 
+    if (!senderId) {
+      throw new Error('Unauthorized access');
+    }
     return this.escrowService.fundEscrow(senderId, recipientId, amount);
   }
 

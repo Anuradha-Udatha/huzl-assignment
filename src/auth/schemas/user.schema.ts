@@ -1,8 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true }) // Good practice to include timestamps
 export class User extends Document {
+  _id: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   email: string;
 

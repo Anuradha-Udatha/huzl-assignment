@@ -1,33 +1,61 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { 
+  Controller, 
+  Post, 
+  Body, 
+  UseGuards, 
+  Req, 
+  BadRequestException, 
+  UnauthorizedException 
+} from '@nestjs/common';
 import { EscrowService } from './escrow.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { AuthenticatedRequest } from 'src/auth/jwt.strategy';
+import { AuthenticatedRequest } from '../auth/interfaces/authenticated-request.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('escrow')
 export class EscrowController {
-  constructor(private escrowService: EscrowService) {}
+  constructor(private readonly escrowService: EscrowService) {}
 
   @Post('fund')
   async fundEscrow(
-    @Req() req: AuthenticatedRequest, 
-    @Body('recipientId') recipientId: string,
-    @Body('amount') amount: number,
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { recipientId: string; amount: number },
   ) {
-    const senderId = req.user?._id.toString(); 
-    if (!senderId) {
-      throw new Error('Unauthorized access');
+
+    if (!body.recipientId || typeof body.recipientId !== 'string' || 
+        !body.amount || typeof body.amount !== 'number') {
+      throw new BadRequestException('Invalid recipientId or amount');
     }
-    return this.escrowService.fundEscrow(senderId, recipientId, amount);
+    const senderId = req.user._id;
+    if (!senderId) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    if (senderId.toString() === body.recipientId) {
+      throw new BadRequestException('Cannot create escrow for yourself');
+    }
+
+    return this.escrowService.fundEscrow(
+      senderId.toString(),
+      body.recipientId,
+      body.amount
+    );
   }
 
   @Post('release')
   async releaseEscrow(@Body('escrowId') escrowId: string) {
+    if (!escrowId || typeof escrowId !== 'string') {
+      throw new BadRequestException('Invalid escrowId');
+    }
+    
     return this.escrowService.releaseEscrow(escrowId);
   }
 
   @Post('refund')
   async refundEscrow(@Body('escrowId') escrowId: string) {
+    if (!escrowId || typeof escrowId !== 'string') {
+      throw new BadRequestException('Invalid escrowId');
+    }
+    
     return this.escrowService.refundEscrow(escrowId);
   }
 }

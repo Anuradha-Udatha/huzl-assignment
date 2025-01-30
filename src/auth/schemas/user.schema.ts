@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-@Schema({ timestamps: true }) // Good practice to include timestamps
+@Schema({ timestamps: true }) 
 export class User extends Document {
   _id: Types.ObjectId;
 

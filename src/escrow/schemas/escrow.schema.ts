@@ -1,19 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Escrow extends Document {
-  @Prop({ required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   senderId: string;
 
-  @Prop({ required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   recipientId: string;
 
   @Prop({ required: true })
   amount: number;
 
-  @Prop({ default: 'funded', enum: ['funded', 'released', 'refunded'] })
+  @Prop({ required: true, enum: ['funded', 'released', 'refunded'] })
   status: string;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
 }
 
 export const EscrowSchema = SchemaFactory.createForClass(Escrow);

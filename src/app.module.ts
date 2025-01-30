@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { WalletModule } from './wallet/wallet.module';
 import { EscrowModule } from './escrow/escrow.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { EscrowModule } from './escrow/escrow.module';
     AuthModule,
     WalletModule,
     EscrowModule,
+    TransactionsModule,
   ],
 })
 export class AppModule {}

@@ -33,13 +33,14 @@ Clone this repository to your local machine
 npm install
 
 ##API ENDPOINTS
-![Screenshot (24)](https://github.com/user-attachments/assets/4fe87f29-b60b-409a-8331-b71bcca27b6a)
-![Screenshot (30)](https://github.com/user-attachments/assets/b1549c72-bda8-4a89-8744-f6d0fe1648e7)
-![Screenshot (25)](https://github.com/user-attachments/assets/efeb175b-d330-4567-b914-2705fc07ce28)
-![Screenshot (26)](https://github.com/user-attachments/assets/969060d6-8cce-4b47-91e3-0ad29703dce4)
-![Screenshot (27)](https://github.com/user-attachments/assets/3800090c-9260-4fb5-acb1-fcd7a32dc353)
-![Screenshot (28)](https://github.com/user-attachments/assets/6b7a25b2-d121-42ef-9ff0-8f1dffafab0b)
-![Screenshot (29)](https://github.com/user-attachments/assets/be159f24-73c1-4374-b641-788c42bac8f8)
+![Screenshot (39)](https://github.com/user-attachments/assets/1f5b189d-362a-46aa-9e86-e1f3ad6cca48)
+![Screenshot (40)](https://github.com/user-attachments/assets/f01c0901-3089-449f-9dd3-9ea662a077ca)
+![Screenshot (41)](https://github.com/user-attachments/assets/78b189af-b2a6-41f5-aca7-1a56ec7c97df)
+![Screenshot (42)](https://github.com/user-attachments/assets/6cab8c6e-2cd1-4b8c-9774-0ddf54bc0667)
+![Screenshot (43)](https://github.com/user-attachments/assets/dcc63cfa-468c-4f19-96e2-671c2f9705e8)
+![Screenshot (44)](https://github.com/user-attachments/assets/e9a956ef-3bff-4fd5-abb6-a279ac730b59)
+![Screenshot (45)](https://github.com/user-attachments/assets/56676245-517b-4953-b089-c609bd9ee09c)
+![Screenshot (46)](https://github.com/user-attachments/assets/e24f7593-71f4-4e8c-9338-970f32372a22)
 
 
 
